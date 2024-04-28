@@ -1,0 +1,22 @@
+POST http://localhost:8080/
+Content-Type: application/json
+
+{
+  "serviceName": "com.hhrpc.hhrpc.demo.api.UserService",
+  "methodName": "findById",
+  "args": [
+    100
+  ]
+}
+
+###
+POST http://localhost:8080/
+Content-Type: application/json
+
+{
+  "serviceName": "com.hhrpc.hhrpc.demo.api.OrderService",
+  "methodName": "findById",
+  "args": [
+    500
+  ]
+}
