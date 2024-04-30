@@ -22,6 +22,7 @@
         <module>hhrpc-core</module>
         <module>hhrpc-demo-api</module>
         <module>hhrpc-demo-provider</module>
+        <module>hhrpc-demo-consumer</module>
     </modules>
 
     <build>

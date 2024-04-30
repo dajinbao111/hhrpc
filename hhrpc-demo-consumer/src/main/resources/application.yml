@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: hhrpc-demo-consumer
+
+server:
+  port: 8081
