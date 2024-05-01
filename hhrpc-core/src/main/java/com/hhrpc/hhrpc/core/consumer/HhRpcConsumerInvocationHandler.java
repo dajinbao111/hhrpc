@@ -2,6 +2,7 @@ package com.hhrpc.hhrpc.core.consumer;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.hhrpc.hhrpc.core.api.RpcContent;
 import com.hhrpc.hhrpc.core.api.RpcRequest;
 import com.hhrpc.hhrpc.core.api.RpcResponse;
 import com.hhrpc.hhrpc.core.util.HhRpcMethodUtils;
@@ -20,13 +21,17 @@ import java.util.concurrent.TimeUnit;
 public class HhRpcConsumerInvocationHandler implements InvocationHandler {
 
     private final String serviceName;
+    private RpcContent rpcContent;
+    private List<String> providers;
 
-    public HhRpcConsumerInvocationHandler(String serviceName) {
+    public HhRpcConsumerInvocationHandler(String serviceName, RpcContent rpcContent, List<String> providers) {
         this.serviceName = serviceName;
+        this.rpcContent = rpcContent;
+        this.providers = providers;
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    public Object invoke(Object proxy, Method method, Object[] args) {
         RpcRequest request = new RpcRequest();
         request.setServiceName(serviceName);
         request.setArgs(args);
@@ -46,8 +51,9 @@ public class HhRpcConsumerInvocationHandler implements InvocationHandler {
         Gson gson = new Gson();
         String requestData = gson.toJson(request);
         try {
+            String url = (String) rpcContent.getLoadBalance().choose(rpcContent.getRouter().rout(providers));
             Response response = client.newCall(new Request.Builder()
-                    .url("http://localhost:8080")
+                    .url(url)
                     .post(RequestBody.create(requestData, MediaType.get("application/json; charset=utf-8")
                     )).build()).execute();
             String responseData = response.body().string();
