@@ -4,6 +4,7 @@ import com.hhrpc.hhrpc.core.annotation.HhRpcProvider;
 import com.hhrpc.hhrpc.core.api.RpcRequest;
 import com.hhrpc.hhrpc.core.api.RpcResponse;
 import com.hhrpc.hhrpc.core.util.HhRpcMethodUtils;
+import com.hhrpc.hhrpc.core.util.TypeUtils;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -52,7 +53,8 @@ public class ProviderBootstrap implements ApplicationContextAware {
         try {
             ProviderMeta providerMeta = fetchProviderMeta(rpcRequest);
             Method method = providerMeta.getMethod();
-            Object data = method.invoke(providerMeta.getServiceImpl(), rpcRequest.getArgs());
+            Object[] args = TypeUtils.processArgs(rpcRequest.getArgs(), method.getParameterTypes(), method.getGenericParameterTypes());
+            Object data = method.invoke(providerMeta.getServiceImpl(), args);
             rpcResponse.setStatus(true);
             rpcResponse.setData(data);
             return rpcResponse;

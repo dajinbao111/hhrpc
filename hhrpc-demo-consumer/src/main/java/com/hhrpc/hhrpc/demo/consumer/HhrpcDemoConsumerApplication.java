@@ -12,6 +12,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 @SpringBootApplication
 @Import(ConsumerConf.class)
 public class HhrpcDemoConsumerApplication {
@@ -37,6 +41,17 @@ public class HhrpcDemoConsumerApplication {
             System.out.println(orderService.toString());
 
             System.out.println(userService.findById(221, "hhrpc"));
+
+            System.out.println(userService.findUser(new User(1, "a")));
+
+            System.out.println(Arrays.toString(orderService.findLongArray(new long[]{1l, 2l, 3l, 4l})));
+
+            System.out.println(orderService.findListOrder(Arrays.asList(new Order(1, "1"), new Order(2, "2"))));
+
+            Map<String, Order> map = new HashMap<>();
+            map.put("001", new Order(111, "map001"));
+            map.put("002", new Order(222, "map002"));
+            System.out.println(orderService.findMapOrder(map));
         };
     }
 }
