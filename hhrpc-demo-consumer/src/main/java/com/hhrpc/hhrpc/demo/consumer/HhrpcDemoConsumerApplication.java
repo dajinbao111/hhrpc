@@ -33,6 +33,10 @@ public class HhrpcDemoConsumerApplication {
 
             Order order = orderService.findById(221);
             System.out.println(order);
+
+            System.out.println(orderService.toString());
+
+            System.out.println(userService.findById(221, "hhrpc"));
         };
     }
 }
