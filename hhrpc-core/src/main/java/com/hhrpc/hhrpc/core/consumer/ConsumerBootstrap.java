@@ -46,7 +46,7 @@ public class ConsumerBootstrap implements ApplicationContextAware, EnvironmentAw
                 if (proxyMap.containsKey(serviceName)) {
                     targetObj = proxyMap.get(serviceName);
                 } else {
-                    targetObj = createTargetObj(field.getType(), rpcContent, registerCenter);
+                    targetObj = createProxyObject(field.getType(), rpcContent, registerCenter);
                     proxyMap.put(serviceName, targetObj);
                 }
                 field.setAccessible(true);
@@ -55,10 +55,14 @@ public class ConsumerBootstrap implements ApplicationContextAware, EnvironmentAw
         }
     }
 
-    private Object createTargetObj(Class<?> clazz, RpcContent rpcContent, RegisterCenter registerCenter) {
+    private Object createProxyObject(Class<?> clazz, RpcContent rpcContent, RegisterCenter registerCenter) {
         String serviceName = clazz.getCanonicalName();
         List<String> nodes = registerCenter.findAll(serviceName);
         List<String> providers = createProviders(nodes);
+        registerCenter.subscribe(serviceName, (event) -> {
+            providers.clear();
+            providers.addAll(createProviders(event.getData()));
+        });
         return Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{clazz}, new HhRpcConsumerInvocationHandler(serviceName, rpcContent, providers));
     }
 

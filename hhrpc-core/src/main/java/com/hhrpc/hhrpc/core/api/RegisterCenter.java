@@ -14,5 +14,5 @@ public interface RegisterCenter {
 
     List<String> findAll(String service);
 
-    void subscribe(String service);
+    void subscribe(String service, EventListener eventListener);
 }

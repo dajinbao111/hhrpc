@@ -1,10 +1,13 @@
 package com.hhrpc.hhrpc.core.register;
 
 import com.google.common.base.Strings;
+import com.hhrpc.hhrpc.core.api.Event;
+import com.hhrpc.hhrpc.core.api.EventListener;
 import com.hhrpc.hhrpc.core.api.RegisterCenter;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
 
@@ -75,7 +78,21 @@ public class ZkRegisterCenter implements RegisterCenter {
     }
 
     @Override
-    public void subscribe(String service) {
-
+    public void subscribe(String service, EventListener eventListener) {
+        String servicePath = Strings.lenientFormat("/%s", service);
+        final TreeCache treeCache = TreeCache.newBuilder(client, servicePath)
+                .setCacheData(true)
+                .setMaxDepth(2)
+                .build();
+        treeCache.getListenable().addListener((curatorFramework, treeCacheEvent) -> {
+            System.out.println("====> subscribe");
+            List<String> nodes = findAll(service);
+            eventListener.fire(new Event(nodes));
+        });
+        try {
+            treeCache.start();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

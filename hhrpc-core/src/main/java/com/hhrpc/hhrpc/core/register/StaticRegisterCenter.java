@@ -1,5 +1,6 @@
 package com.hhrpc.hhrpc.core.register;
 
+import com.hhrpc.hhrpc.core.api.EventListener;
 import com.hhrpc.hhrpc.core.api.RegisterCenter;
 
 import java.util.List;
@@ -38,7 +39,7 @@ public class StaticRegisterCenter implements RegisterCenter {
     }
 
     @Override
-    public void subscribe(String service) {
+    public void subscribe(String service, EventListener eventListener) {
 
     }
 }
