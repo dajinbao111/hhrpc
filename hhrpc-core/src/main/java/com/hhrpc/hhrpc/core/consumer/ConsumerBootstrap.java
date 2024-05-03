@@ -1,9 +1,9 @@
 package com.hhrpc.hhrpc.core.consumer;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
+import com.google.common.base.Strings;
 import com.hhrpc.hhrpc.core.annotation.HhRpcConsumer;
 import com.hhrpc.hhrpc.core.api.LoadBalance;
+import com.hhrpc.hhrpc.core.api.RegisterCenter;
 import com.hhrpc.hhrpc.core.api.Router;
 import com.hhrpc.hhrpc.core.api.RpcContent;
 import org.springframework.beans.BeansException;
@@ -15,6 +15,7 @@ import org.springframework.core.env.Environment;
 import java.lang.reflect.Field;
 import java.lang.reflect.Proxy;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ConsumerBootstrap implements ApplicationContextAware, EnvironmentAware {
     private ApplicationContext applicationContext;
@@ -27,12 +28,10 @@ public class ConsumerBootstrap implements ApplicationContextAware, EnvironmentAw
     }
 
     public void screenConsumerServiceFields() throws IllegalAccessException {
-        String urls = environment.getProperty("hhrpc.providers");
-        List<String> providers = Lists.newArrayList(Splitter.on(",").trimResults().omitEmptyStrings().split(urls));
+        RegisterCenter registerCenter = applicationContext.getBean(RegisterCenter.class);
         Router router = applicationContext.getBean(Router.class);
         LoadBalance loadBalance = applicationContext.getBean(LoadBalance.class);
         RpcContent rpcContent = new RpcContent(router, loadBalance);
-        loadBalance.choose(router.rout(providers));
         String[] beanDefinitionNames = applicationContext.getBeanDefinitionNames();
         for (String beanDefinitionName : beanDefinitionNames) {
             Object bean = applicationContext.getBean(beanDefinitionName);
@@ -47,7 +46,7 @@ public class ConsumerBootstrap implements ApplicationContextAware, EnvironmentAw
                 if (proxyMap.containsKey(serviceName)) {
                     targetObj = proxyMap.get(serviceName);
                 } else {
-                    targetObj = createTargetObj(field.getType(), rpcContent, providers);
+                    targetObj = createTargetObj(field.getType(), rpcContent, registerCenter);
                     proxyMap.put(serviceName, targetObj);
                 }
                 field.setAccessible(true);
@@ -56,8 +55,15 @@ public class ConsumerBootstrap implements ApplicationContextAware, EnvironmentAw
         }
     }
 
-    private Object createTargetObj(Class<?> clazz, RpcContent rpcContent, List<String> providers) {
-        return Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{clazz}, new HhRpcConsumerInvocationHandler(clazz.getCanonicalName(), rpcContent, providers));
+    private Object createTargetObj(Class<?> clazz, RpcContent rpcContent, RegisterCenter registerCenter) {
+        String serviceName = clazz.getCanonicalName();
+        List<String> nodes = registerCenter.findAll(serviceName);
+        List<String> providers = createProviders(nodes);
+        return Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{clazz}, new HhRpcConsumerInvocationHandler(serviceName, rpcContent, providers));
+    }
+
+    private List<String> createProviders(List<String> nodes) {
+        return nodes.stream().map(node -> Strings.lenientFormat("http://%s", node.replace("_", ":"))).collect(Collectors.toList());
     }
 
 
@@ -77,4 +83,5 @@ public class ConsumerBootstrap implements ApplicationContextAware, EnvironmentAw
     public void setEnvironment(Environment environment) {
         this.environment = environment;
     }
+
 }
