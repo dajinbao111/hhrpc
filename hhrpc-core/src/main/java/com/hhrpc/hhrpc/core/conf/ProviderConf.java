@@ -2,6 +2,7 @@ package com.hhrpc.hhrpc.core.conf;
 
 import com.hhrpc.hhrpc.core.api.RegisterCenter;
 import com.hhrpc.hhrpc.core.provider.ProviderBootstrap;
+import com.hhrpc.hhrpc.core.provider.ProviderInvoker;
 import com.hhrpc.hhrpc.core.register.ZkRegisterCenter;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
@@ -27,5 +28,10 @@ public class ProviderConf {
         return x -> {
             providerBootstrap.start();
         };
+    }
+
+    @Bean
+    public ProviderInvoker providerInvoker(ProviderBootstrap providerBootstrap) {
+        return new ProviderInvoker(providerBootstrap);
     }
 }

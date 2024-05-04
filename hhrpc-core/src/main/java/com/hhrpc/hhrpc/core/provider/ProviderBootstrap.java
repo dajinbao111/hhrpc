@@ -3,10 +3,7 @@ package com.hhrpc.hhrpc.core.provider;
 import com.google.common.base.Strings;
 import com.hhrpc.hhrpc.core.annotation.HhRpcProvider;
 import com.hhrpc.hhrpc.core.api.RegisterCenter;
-import com.hhrpc.hhrpc.core.api.RpcRequest;
-import com.hhrpc.hhrpc.core.api.RpcResponse;
 import com.hhrpc.hhrpc.core.util.HhRpcMethodUtils;
-import com.hhrpc.hhrpc.core.util.TypeUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.BeansException;
@@ -37,7 +34,7 @@ public class ProviderBootstrap implements ApplicationContextAware, EnvironmentAw
     private String instance;
 
     @PostConstruct
-    public void buildProviders() {
+    public void init() {
         String port = environment.getProperty("server.port");
         try {
             String hostAddress =InetAddress.getLocalHost().getHostAddress();
@@ -92,42 +89,13 @@ public class ProviderBootstrap implements ApplicationContextAware, EnvironmentAw
         unregister();
     }
 
-    public RpcResponse invokeMethod(RpcRequest rpcRequest) {
-        RpcResponse rpcResponse = new RpcResponse();
-        try {
-            ProviderMeta providerMeta = fetchProviderMeta(rpcRequest);
-            Method method = providerMeta.getMethod();
-            Object[] args = TypeUtils.processArgs(rpcRequest.getArgs(), method.getParameterTypes(), method.getGenericParameterTypes());
-            Object data = method.invoke(providerMeta.getServiceImpl(), args);
-            rpcResponse.setStatus(true);
-            rpcResponse.setData(data);
-            return rpcResponse;
-        } catch (Exception e) {
-            e.printStackTrace();
-            rpcResponse.setStatus(false);
-            rpcResponse.setData(null);
-            return rpcResponse;
-        }
-    }
-
-    private ProviderMeta fetchProviderMeta(RpcRequest rpcRequest) {
-        return serviceMap.get(rpcRequest.getServiceName()).stream()
-                .filter(item -> item.getMethodSign().equals(rpcRequest.getMethodSign()))
-                .findAny().orElse(null);
-    }
-
-    private Method findMethod(Object providerObj, String methodName) {
-        Method[] methods = providerObj.getClass().getMethods();
-        for (Method method : methods) {
-            if (method.getName().equals(methodName)) {
-                return method;
-            }
-        }
-        return null;
-    }
 
     @Override
     public void setEnvironment(Environment environment) {
         this.environment = environment;
+    }
+
+    public MultiValueMap<String, ProviderMeta> getServiceMap() {
+        return serviceMap;
     }
 }
