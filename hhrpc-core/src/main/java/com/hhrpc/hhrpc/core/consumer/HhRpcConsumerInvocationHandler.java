@@ -1,7 +1,6 @@
 package com.hhrpc.hhrpc.core.consumer;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.hhrpc.hhrpc.core.api.RpcContent;
 import com.hhrpc.hhrpc.core.api.RpcRequest;
 import com.hhrpc.hhrpc.core.api.RpcResponse;
@@ -12,10 +11,7 @@ import okhttp3.*;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class HhRpcConsumerInvocationHandler implements InvocationHandler {
@@ -39,7 +35,7 @@ public class HhRpcConsumerInvocationHandler implements InvocationHandler {
         if (HhRpcMethodUtils.checkLocalMethod(method)) {
             return null;
         }
-        RpcResponse response = getRpcResponse(request, method.getReturnType(), method.getGenericReturnType());
+        RpcResponse response = getRpcResponse(request, method);
         if (response.getStatus()) {
             return response.getData();
         } else {
@@ -47,7 +43,7 @@ public class HhRpcConsumerInvocationHandler implements InvocationHandler {
         }
     }
 
-    private RpcResponse getRpcResponse(RpcRequest request, Class<?> returnType, Type genericReturnType) {
+    private RpcResponse getRpcResponse(RpcRequest request, Method method) {
         Gson gson = new Gson();
         String requestData = gson.toJson(request);
         try {
@@ -56,33 +52,12 @@ public class HhRpcConsumerInvocationHandler implements InvocationHandler {
                     .url(url)
                     .post(RequestBody.create(requestData, MediaType.get("application/json; charset=utf-8")
                     )).build()).execute();
-            String responseData = response.body().string();
-
-            // 反序列化
-            Class<?> realClass = TypeUtils.cast(returnType);
-            if (List.class.isAssignableFrom(realClass)) {
-                if (genericReturnType instanceof ParameterizedType parameterizedType) {
-                    Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
-                    TypeToken<?> listTypeToken = TypeToken.getParameterized(List.class, actualTypeArguments);
-                    TypeToken<?> parameterized = TypeToken.getParameterized(RpcResponse.class, listTypeToken.getType());
-                    return gson.fromJson(responseData, parameterized.getType());
-                }
-            }
-            if (Map.class.isAssignableFrom(realClass)) {
-                if (genericReturnType instanceof ParameterizedType parameterizedType) {
-                    Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
-                    TypeToken<?> mapTypeToken = TypeToken.getParameterized(Map.class, actualTypeArguments);
-                    TypeToken<?> parameterized = TypeToken.getParameterized(RpcResponse.class, mapTypeToken.getType());
-                    return gson.fromJson(responseData, parameterized.getType());
-                }
-            }
-            TypeToken<?> parameterized = TypeToken.getParameterized(RpcResponse.class, realClass);
-            return gson.fromJson(responseData, parameterized.getType());
+            return TypeUtils.getRpcResponse(method, response);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
+
 
     private final OkHttpClient client = new OkHttpClient.Builder()
             .connectionPool(new ConnectionPool(16, 60, TimeUnit.SECONDS))

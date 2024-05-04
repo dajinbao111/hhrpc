@@ -2,7 +2,11 @@ package com.hhrpc.hhrpc.core.util;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.hhrpc.hhrpc.core.api.RpcResponse;
+import okhttp3.Response;
 
+import java.io.IOException;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -81,5 +85,29 @@ public class TypeUtils {
             result[i] = cast(args[i], parameterTypes[i], genericParameterTypes[i]);
         }
         return result;
+    }
+
+    public static RpcResponse getRpcResponse(Method method, Response response) throws IOException {
+        Gson gson = new Gson();
+        String responseData = response.body().string();
+        // 反序列化
+        Class<?> realClass = TypeUtils.cast(method.getReturnType());
+        TypeToken<?> parameterized = TypeToken.getParameterized(RpcResponse.class, realClass);
+        Type genericReturnType = method.getGenericReturnType();
+        if (List.class.isAssignableFrom(realClass)) {
+            if (genericReturnType instanceof ParameterizedType parameterizedType) {
+                Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+                TypeToken<?> listTypeToken = TypeToken.getParameterized(List.class, actualTypeArguments);
+                parameterized = TypeToken.getParameterized(RpcResponse.class, listTypeToken.getType());
+            }
+        }
+        if (Map.class.isAssignableFrom(realClass)) {
+            if (genericReturnType instanceof ParameterizedType parameterizedType) {
+                Type[] actualTypeArguments = parameterizedType.getActualTypeArguments();
+                TypeToken<?> mapTypeToken = TypeToken.getParameterized(Map.class, actualTypeArguments);
+                parameterized = TypeToken.getParameterized(RpcResponse.class, mapTypeToken.getType());
+            }
+        }
+        return gson.fromJson(responseData, parameterized.getType());
     }
 }

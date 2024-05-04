@@ -6,6 +6,7 @@ import com.hhrpc.hhrpc.core.api.LoadBalance;
 import com.hhrpc.hhrpc.core.api.RegisterCenter;
 import com.hhrpc.hhrpc.core.api.Router;
 import com.hhrpc.hhrpc.core.api.RpcContent;
+import com.hhrpc.hhrpc.core.util.HhRpcMethodUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -14,7 +15,9 @@ import org.springframework.core.env.Environment;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Proxy;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ConsumerBootstrap implements ApplicationContextAware, EnvironmentAware {
@@ -36,7 +39,7 @@ public class ConsumerBootstrap implements ApplicationContextAware, EnvironmentAw
         for (String beanDefinitionName : beanDefinitionNames) {
             Object bean = applicationContext.getBean(beanDefinitionName);
             // 获取这个bean中，所有带有@HhRpcConsumer注解的字段
-            List<Field> fieldList = findServiceFields(bean.getClass());
+            List<Field> fieldList = HhRpcMethodUtils.findAnnotationFields(bean.getClass(), HhRpcConsumer.class);
             if (fieldList.isEmpty()) {
                 continue;
             }
@@ -68,19 +71,6 @@ public class ConsumerBootstrap implements ApplicationContextAware, EnvironmentAw
 
     private List<String> createProviders(List<String> nodes) {
         return nodes.stream().map(node -> Strings.lenientFormat("http://%s", node.replace("_", ":"))).collect(Collectors.toList());
-    }
-
-
-    private List<Field> findServiceFields(Class<?> clazz) {
-        List<Field> results = new ArrayList<>();
-        while (Objects.nonNull(clazz)) {
-            List<Field> fields = Arrays.stream(clazz.getDeclaredFields()).filter(field -> field.isAnnotationPresent(HhRpcConsumer.class)).toList();
-            if (!fields.isEmpty()) {
-                results.addAll(fields);
-            }
-            clazz = clazz.getSuperclass();
-        }
-        return results;
     }
 
     @Override
