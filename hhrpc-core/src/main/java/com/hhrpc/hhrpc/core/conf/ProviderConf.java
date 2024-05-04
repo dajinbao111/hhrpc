@@ -6,6 +6,7 @@ import com.hhrpc.hhrpc.core.register.ZkRegisterCenter;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 
 @Configuration
 public class ProviderConf {
@@ -21,6 +22,7 @@ public class ProviderConf {
     }
 
     @Bean
+    @Order(Integer.MIN_VALUE)
     public ApplicationRunner runStart(ProviderBootstrap providerBootstrap) {
         return x -> {
             providerBootstrap.start();

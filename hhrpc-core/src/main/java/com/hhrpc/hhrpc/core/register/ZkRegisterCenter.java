@@ -17,6 +17,7 @@ import java.util.Objects;
 public class ZkRegisterCenter implements RegisterCenter {
 
     private CuratorFramework client;
+    private TreeCache treeCache;
 
     @Override
     public void start() {
@@ -32,7 +33,9 @@ public class ZkRegisterCenter implements RegisterCenter {
     @Override
     public void stop() {
         this.client.close();
-        ;
+        if (Objects.nonNull(treeCache)) {
+            treeCache.close();
+        }
     }
 
     @Override
@@ -80,7 +83,7 @@ public class ZkRegisterCenter implements RegisterCenter {
     @Override
     public void subscribe(String service, EventListener eventListener) {
         String servicePath = Strings.lenientFormat("/%s", service);
-        final TreeCache treeCache = TreeCache.newBuilder(client, servicePath)
+        treeCache = TreeCache.newBuilder(client, servicePath)
                 .setCacheData(true)
                 .setMaxDepth(2)
                 .build();
