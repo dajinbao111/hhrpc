@@ -3,6 +3,7 @@ package com.hhrpc.hhrpc.core.consumer;
 import com.hhrpc.hhrpc.core.api.RpcContent;
 import com.hhrpc.hhrpc.core.api.RpcRequest;
 import com.hhrpc.hhrpc.core.api.RpcResponse;
+import com.hhrpc.hhrpc.core.meta.InstanceMeta;
 import com.hhrpc.hhrpc.core.util.HhRpcMethodUtils;
 import com.hhrpc.hhrpc.core.util.TypeUtils;
 
@@ -15,12 +16,12 @@ public class HhRpcConsumerInvocationHandler implements InvocationHandler {
 
     private final String serviceName;
     private RpcContent rpcContent;
-    private List<String> providers;
+    private List<InstanceMeta> instanceMetaList;
 
-    public HhRpcConsumerInvocationHandler(String serviceName, RpcContent rpcContent, List<String> providers) {
+    public HhRpcConsumerInvocationHandler(String serviceName, RpcContent rpcContent, List<InstanceMeta> instanceMetaList) {
         this.serviceName = serviceName;
         this.rpcContent = rpcContent;
-        this.providers = providers;
+        this.instanceMetaList = instanceMetaList;
     }
 
     @Override
@@ -42,8 +43,8 @@ public class HhRpcConsumerInvocationHandler implements InvocationHandler {
 
     private RpcResponse getRpcResponse(RpcRequest request, Method method) {
         try {
-            String url = (String) rpcContent.getLoadBalance().choose(rpcContent.getRouter().rout(providers));
-            RpcResponse<?> rpcResponse = rpcContent.getHttpInvoker().post(request, url);
+            InstanceMeta instanceMeta = rpcContent.getLoadBalance().choose(rpcContent.getRouter().rout(instanceMetaList));
+            RpcResponse<?> rpcResponse = rpcContent.getHttpInvoker().post(request, instanceMeta.toUrl());
             return TypeUtils.getRpcResponse(method, rpcResponse);
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -1,4 +1,4 @@
-package com.hhrpc.hhrpc.core.provider;
+package com.hhrpc.hhrpc.core.meta;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

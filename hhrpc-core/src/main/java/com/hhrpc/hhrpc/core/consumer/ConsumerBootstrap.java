@@ -1,11 +1,11 @@
 package com.hhrpc.hhrpc.core.consumer;
 
-import com.google.common.base.Strings;
 import com.hhrpc.hhrpc.core.annotation.HhRpcConsumer;
 import com.hhrpc.hhrpc.core.api.LoadBalance;
 import com.hhrpc.hhrpc.core.api.RegisterCenter;
 import com.hhrpc.hhrpc.core.api.Router;
 import com.hhrpc.hhrpc.core.api.RpcContent;
+import com.hhrpc.hhrpc.core.meta.InstanceMeta;
 import com.hhrpc.hhrpc.core.util.HhRpcMethodUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -18,7 +18,6 @@ import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ConsumerBootstrap implements ApplicationContextAware, EnvironmentAware {
     private ApplicationContext applicationContext;
@@ -61,17 +60,12 @@ public class ConsumerBootstrap implements ApplicationContextAware, EnvironmentAw
 
     private Object createProxyObject(Class<?> clazz, RpcContent rpcContent, RegisterCenter registerCenter) {
         String serviceName = clazz.getCanonicalName();
-        List<String> nodes = registerCenter.findAll(serviceName);
-        List<String> providers = createProviders(nodes);
+        List<InstanceMeta> instanceMetaList = registerCenter.findAll(serviceName);
         registerCenter.subscribe(serviceName, (event) -> {
-            providers.clear();
-            providers.addAll(createProviders(event.getData()));
+            instanceMetaList.clear();
+            instanceMetaList.addAll(event.getData());
         });
-        return Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{clazz}, new HhRpcConsumerInvocationHandler(serviceName, rpcContent, providers));
-    }
-
-    private List<String> createProviders(List<String> nodes) {
-        return nodes.stream().map(node -> Strings.lenientFormat("http://%s", node.replace("_", ":"))).collect(Collectors.toList());
+        return Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{clazz}, new HhRpcConsumerInvocationHandler(serviceName, rpcContent, instanceMetaList));
     }
 
     @Override

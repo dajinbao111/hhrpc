@@ -7,6 +7,7 @@ import com.hhrpc.hhrpc.core.cluster.RoundRobinLoadBalance;
 import com.hhrpc.hhrpc.core.consumer.ConsumerBootstrap;
 import com.hhrpc.hhrpc.core.consumer.HttpInvoker;
 import com.hhrpc.hhrpc.core.consumer.http.OkHttpInvoker;
+import com.hhrpc.hhrpc.core.meta.InstanceMeta;
 import com.hhrpc.hhrpc.core.register.ZkRegisterCenter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
@@ -34,12 +35,12 @@ public class ConsumerConf {
     }
 
     @Bean
-    public Router router() {
+    public Router<InstanceMeta> router() {
         return Router.DEFAULT;
     }
 
     @Bean
-    public LoadBalance loadBalance() {
+    public LoadBalance<InstanceMeta> loadBalance() {
         return new RoundRobinLoadBalance();
     }
 

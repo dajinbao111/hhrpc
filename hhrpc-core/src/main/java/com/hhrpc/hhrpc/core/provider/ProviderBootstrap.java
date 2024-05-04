@@ -1,8 +1,9 @@
 package com.hhrpc.hhrpc.core.provider;
 
-import com.google.common.base.Strings;
 import com.hhrpc.hhrpc.core.annotation.HhRpcProvider;
 import com.hhrpc.hhrpc.core.api.RegisterCenter;
+import com.hhrpc.hhrpc.core.meta.InstanceMeta;
+import com.hhrpc.hhrpc.core.meta.ProviderMeta;
 import com.hhrpc.hhrpc.core.util.HhRpcMethodUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -31,14 +32,20 @@ public class ProviderBootstrap implements ApplicationContextAware, EnvironmentAw
 
     // 对象创建完，还没有初始化的时候，拿到这些类
     private MultiValueMap<String, ProviderMeta> serviceMap = new LinkedMultiValueMap<>();
-    private String instance;
+    private InstanceMeta instanceMeta;
+
+    private RegisterCenter registerCenter;
 
     @PostConstruct
     public void init() {
-        String port = environment.getProperty("server.port");
+        Integer port = Integer.valueOf(environment.getProperty("server.port"));
         try {
-            String hostAddress =InetAddress.getLocalHost().getHostAddress();
-            this.instance = Strings.lenientFormat("%s_%s", hostAddress, port);
+            String hostAddress = InetAddress.getLocalHost().getHostAddress();
+            instanceMeta = InstanceMeta.builder()
+                    .schema("http")
+                    .host(hostAddress)
+                    .port(port)
+                    .build();
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
@@ -64,23 +71,21 @@ public class ProviderBootstrap implements ApplicationContextAware, EnvironmentAw
 
     public void start() {
         // 启动zk
-        RegisterCenter registerCenter = applicationContext.getBean(RegisterCenter.class);
+        registerCenter = applicationContext.getBean(RegisterCenter.class);
         registerCenter.start();
         // 注册
         this.register();
     }
 
     private void register() {
-        RegisterCenter registerCenter = applicationContext.getBean(RegisterCenter.class);
         serviceMap.keySet().forEach(service -> {
-            registerCenter.register(service, instance);
+            registerCenter.register(service, instanceMeta);
         });
     }
 
     private void unregister() {
-        RegisterCenter registerCenter = applicationContext.getBean(RegisterCenter.class);
         serviceMap.keySet().forEach(service -> {
-            registerCenter.unregister(service, instance);
+            registerCenter.unregister(service, instanceMeta);
         });
     }
 

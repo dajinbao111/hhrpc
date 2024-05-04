@@ -2,6 +2,7 @@ package com.hhrpc.hhrpc.core.provider;
 
 import com.hhrpc.hhrpc.core.api.RpcRequest;
 import com.hhrpc.hhrpc.core.api.RpcResponse;
+import com.hhrpc.hhrpc.core.meta.ProviderMeta;
 import com.hhrpc.hhrpc.core.util.TypeUtils;
 import org.springframework.util.MultiValueMap;
 
