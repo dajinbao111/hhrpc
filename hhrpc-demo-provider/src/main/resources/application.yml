@@ -3,3 +3,10 @@ spring:
     name: hhrpc-demo-provider
 server:
   port: 8080
+hhrpc:
+  zkservers: localhost:2181
+  zkroot: hhrpc
+app:
+  id: hhrpc
+  namespace: public
+  env: dev

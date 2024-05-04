@@ -1,6 +1,7 @@
 package com.hhrpc.hhrpc.core.api;
 
 import com.hhrpc.hhrpc.core.meta.InstanceMeta;
+import com.hhrpc.hhrpc.core.meta.ServiceMeta;
 
 import java.util.List;
 
@@ -10,11 +11,11 @@ public interface RegisterCenter {
 
     void stop();
 
-    void register(String service, InstanceMeta instanceMeta);
+    void register(ServiceMeta serviceMeta, InstanceMeta instanceMeta);
 
-    void unregister(String service, InstanceMeta instanceMeta);
+    void unregister(ServiceMeta serviceMeta, InstanceMeta instanceMeta);
 
-    List<InstanceMeta> findAll(String service);
+    List<InstanceMeta> findAll(ServiceMeta serviceMeta);
 
-    void subscribe(String service, EventListener eventListener);
+    void subscribe(ServiceMeta serviceMeta, EventListener eventListener);
 }

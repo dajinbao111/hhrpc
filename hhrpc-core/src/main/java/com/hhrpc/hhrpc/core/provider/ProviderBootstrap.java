@@ -4,6 +4,7 @@ import com.hhrpc.hhrpc.core.annotation.HhRpcProvider;
 import com.hhrpc.hhrpc.core.api.RegisterCenter;
 import com.hhrpc.hhrpc.core.meta.InstanceMeta;
 import com.hhrpc.hhrpc.core.meta.ProviderMeta;
+import com.hhrpc.hhrpc.core.meta.ServiceMeta;
 import com.hhrpc.hhrpc.core.util.HhRpcMethodUtils;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -36,9 +37,17 @@ public class ProviderBootstrap implements ApplicationContextAware, EnvironmentAw
 
     private RegisterCenter registerCenter;
 
+
+    private String app;
+    private String namespace;
+    private String env;
+
     @PostConstruct
     public void init() {
         Integer port = Integer.valueOf(environment.getProperty("server.port"));
+        app = environment.getProperty("app.id");
+        namespace = environment.getProperty("app.namespace");
+        env = environment.getProperty("app.env");
         try {
             String hostAddress = InetAddress.getLocalHost().getHostAddress();
             instanceMeta = InstanceMeta.builder()
@@ -79,13 +88,22 @@ public class ProviderBootstrap implements ApplicationContextAware, EnvironmentAw
 
     private void register() {
         serviceMap.keySet().forEach(service -> {
-            registerCenter.register(service, instanceMeta);
+            registerCenter.register(createServiceMeta(service), instanceMeta);
         });
+    }
+
+    private ServiceMeta createServiceMeta(String service) {
+        ServiceMeta serviceMeta = ServiceMeta.builder()
+                .namespace(namespace)
+                .app(app)
+                .env(env)
+                .name(service).build();
+        return serviceMeta;
     }
 
     private void unregister() {
         serviceMap.keySet().forEach(service -> {
-            registerCenter.unregister(service, instanceMeta);
+            registerCenter.unregister(createServiceMeta(service), instanceMeta);
         });
     }
 

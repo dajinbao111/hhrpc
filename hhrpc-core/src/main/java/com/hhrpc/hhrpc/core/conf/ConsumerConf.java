@@ -30,7 +30,7 @@ public class ConsumerConf {
     @Order(Integer.MIN_VALUE)
     public ApplicationRunner screenConsumerServiceFields(ConsumerBootstrap consumerBootstrap) {
         return x -> {
-            consumerBootstrap.screenConsumerServiceFields();
+            consumerBootstrap.start();
         };
     }
 

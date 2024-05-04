@@ -3,6 +3,7 @@ package com.hhrpc.hhrpc.core.register;
 import com.hhrpc.hhrpc.core.api.EventListener;
 import com.hhrpc.hhrpc.core.api.RegisterCenter;
 import com.hhrpc.hhrpc.core.meta.InstanceMeta;
+import com.hhrpc.hhrpc.core.meta.ServiceMeta;
 
 import java.util.List;
 
@@ -25,22 +26,22 @@ public class StaticRegisterCenter implements RegisterCenter {
     }
 
     @Override
-    public void register(String service, InstanceMeta instanceMeta) {
+    public void register(ServiceMeta serviceMeta, InstanceMeta instanceMeta) {
 
     }
 
     @Override
-    public void unregister(String service, InstanceMeta instanceMeta) {
+    public void unregister(ServiceMeta serviceMeta, InstanceMeta instanceMeta) {
 
     }
 
     @Override
-    public List<InstanceMeta> findAll(String service) {
+    public List<InstanceMeta> findAll(ServiceMeta serviceMeta) {
         return null;
     }
 
     @Override
-    public void subscribe(String service, EventListener eventListener) {
+    public void subscribe(ServiceMeta serviceMeta, EventListener eventListener) {
 
     }
 }
