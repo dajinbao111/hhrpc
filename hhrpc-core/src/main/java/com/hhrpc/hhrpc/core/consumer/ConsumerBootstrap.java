@@ -34,7 +34,8 @@ public class ConsumerBootstrap implements ApplicationContextAware, EnvironmentAw
         RegisterCenter registerCenter = applicationContext.getBean(RegisterCenter.class);
         Router router = applicationContext.getBean(Router.class);
         LoadBalance loadBalance = applicationContext.getBean(LoadBalance.class);
-        RpcContent rpcContent = new RpcContent(router, loadBalance);
+        HttpInvoker httpInvoker = applicationContext.getBean(HttpInvoker.class);
+        RpcContent rpcContent = new RpcContent(router, loadBalance, httpInvoker);
         String[] beanDefinitionNames = applicationContext.getBeanDefinitionNames();
         for (String beanDefinitionName : beanDefinitionNames) {
             Object bean = applicationContext.getBean(beanDefinitionName);

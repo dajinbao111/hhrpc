@@ -5,6 +5,8 @@ import com.hhrpc.hhrpc.core.api.RegisterCenter;
 import com.hhrpc.hhrpc.core.api.Router;
 import com.hhrpc.hhrpc.core.cluster.RoundRobinLoadBalance;
 import com.hhrpc.hhrpc.core.consumer.ConsumerBootstrap;
+import com.hhrpc.hhrpc.core.consumer.HttpInvoker;
+import com.hhrpc.hhrpc.core.consumer.http.OkHttpInvoker;
 import com.hhrpc.hhrpc.core.register.ZkRegisterCenter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
@@ -44,5 +46,10 @@ public class ConsumerConf {
     @Bean(initMethod = "start", destroyMethod = "stop")
     public RegisterCenter registerCenter() {
         return new ZkRegisterCenter();
+    }
+
+    @Bean
+    public HttpInvoker httpInvoker() {
+        return new OkHttpInvoker();
     }
 }

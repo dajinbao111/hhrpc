@@ -3,7 +3,6 @@ package com.hhrpc.hhrpc.core.util;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.hhrpc.hhrpc.core.api.RpcResponse;
-import okhttp3.Response;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -87,9 +86,9 @@ public class TypeUtils {
         return result;
     }
 
-    public static RpcResponse getRpcResponse(Method method, Response response) throws IOException {
+    public static RpcResponse getRpcResponse(Method method, RpcResponse<?> rpcResponse) throws IOException {
         Gson gson = new Gson();
-        String responseData = response.body().string();
+        String responseData = gson.toJson(rpcResponse);
         // 反序列化
         Class<?> realClass = TypeUtils.cast(method.getReturnType());
         TypeToken<?> parameterized = TypeToken.getParameterized(RpcResponse.class, realClass);
