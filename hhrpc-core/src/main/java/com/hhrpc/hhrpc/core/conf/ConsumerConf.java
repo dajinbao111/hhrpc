@@ -1,5 +1,6 @@
 package com.hhrpc.hhrpc.core.conf;
 
+import com.hhrpc.hhrpc.core.api.Filter;
 import com.hhrpc.hhrpc.core.api.LoadBalance;
 import com.hhrpc.hhrpc.core.api.RegisterCenter;
 import com.hhrpc.hhrpc.core.api.Router;
@@ -7,6 +8,7 @@ import com.hhrpc.hhrpc.core.cluster.RoundRobinLoadBalance;
 import com.hhrpc.hhrpc.core.consumer.ConsumerBootstrap;
 import com.hhrpc.hhrpc.core.consumer.HttpInvoker;
 import com.hhrpc.hhrpc.core.consumer.http.OkHttpInvoker;
+import com.hhrpc.hhrpc.core.filter.CacheFilter;
 import com.hhrpc.hhrpc.core.meta.InstanceMeta;
 import com.hhrpc.hhrpc.core.register.ZkRegisterCenter;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,5 +54,15 @@ public class ConsumerConf {
     @Bean
     public HttpInvoker httpInvoker() {
         return new OkHttpInvoker();
+    }
+
+    @Bean
+    public Filter filter01() {
+        return Filter.DEFAULT;
+    }
+
+    @Bean
+    public Filter filter02() {
+        return new CacheFilter();
     }
 }

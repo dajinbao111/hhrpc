@@ -1,10 +1,8 @@
 package com.hhrpc.hhrpc.core.consumer;
 
+import com.google.common.collect.Lists;
 import com.hhrpc.hhrpc.core.annotation.HhRpcConsumer;
-import com.hhrpc.hhrpc.core.api.LoadBalance;
-import com.hhrpc.hhrpc.core.api.RegisterCenter;
-import com.hhrpc.hhrpc.core.api.Router;
-import com.hhrpc.hhrpc.core.api.RpcContent;
+import com.hhrpc.hhrpc.core.api.*;
 import com.hhrpc.hhrpc.core.meta.InstanceMeta;
 import com.hhrpc.hhrpc.core.meta.ServiceMeta;
 import com.hhrpc.hhrpc.core.util.HhRpcMethodUtils;
@@ -39,7 +37,9 @@ public class ConsumerBootstrap implements ApplicationContextAware, EnvironmentAw
         Router router = applicationContext.getBean(Router.class);
         LoadBalance loadBalance = applicationContext.getBean(LoadBalance.class);
         HttpInvoker httpInvoker = applicationContext.getBean(HttpInvoker.class);
+        List<Filter> filterList = Lists.newArrayList(applicationContext.getBeansOfType(Filter.class).values());
         RpcContent rpcContent = new RpcContent(router, loadBalance, httpInvoker);
+        rpcContent.setFilterList(filterList);
         String[] beanDefinitionNames = applicationContext.getBeanDefinitionNames();
         app = environment.getProperty("app.id");
         namespace = environment.getProperty("app.namespace");

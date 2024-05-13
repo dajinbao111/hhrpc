@@ -14,3 +14,8 @@ app:
   id: hhrpc
   namespace: public
   env: dev
+
+logging:
+  level:
+    root: error
+    com.hhrpc.hhrpc: debug

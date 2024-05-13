@@ -6,6 +6,7 @@ import com.hhrpc.hhrpc.core.api.EventListener;
 import com.hhrpc.hhrpc.core.api.RegisterCenter;
 import com.hhrpc.hhrpc.core.meta.InstanceMeta;
 import com.hhrpc.hhrpc.core.meta.ServiceMeta;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class ZkRegisterCenter implements RegisterCenter {
 
     private CuratorFramework client;
@@ -102,7 +104,7 @@ public class ZkRegisterCenter implements RegisterCenter {
                 .setMaxDepth(2)
                 .build();
         treeCache.getListenable().addListener((curatorFramework, treeCacheEvent) -> {
-            System.out.println("====> subscribe");
+            log.debug("====> subscribe");
             List<InstanceMeta> nodes = findAll(serviceMeta);
             eventListener.fire(new Event(nodes));
         });
