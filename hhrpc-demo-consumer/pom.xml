@@ -6,16 +6,12 @@
         <groupId>com.hhrpc</groupId>
         <artifactId>hhrpc</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-        <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.hhrpc</groupId>
     <artifactId>hhrpc-demo-consumer</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>hhrpc-demo-consumer</name>
     <description>hhrpc-demo-consumer</description>
-    <properties>
-        <java.version>17</java.version>
-    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>

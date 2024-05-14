@@ -4,7 +4,7 @@ import com.hhrpc.hhrpc.core.util.MockUtils;
 import com.hhrpc.hhrpc.demo.api.User;
 import org.junit.jupiter.api.Test;
 
-public class BeanTest {
+class BeanTest {
 
     @Test
     public void mockUserTest() {
