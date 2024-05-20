@@ -46,18 +46,23 @@ public class HhRpcConsumerInvocationHandler implements InvocationHandler {
             }
         }
         log.debug("===> invoke: {}", request);
-        RpcResponse response = getRpcResponse(request, method);
-        log.debug("===> post result: {}", response);
-        if (!response.getStatus()) {
-            return null;
+        InstanceMeta instanceMeta = rpcContent.getLoadBalance().choose(rpcContent.getRouter().rout(instanceMetaList));
+        RpcResponse<?> rpcResponse = rpcContent.getHttpInvoker().post(request, instanceMeta.toUrl());
+        if (!rpcResponse.getStatus()) {
+            throw rpcResponse.getEx();
         }
+        Object result = rpcResponse.getData();
+        result = TypeUtils.castFastJsonReturnObject(result, method);
+        //RpcResponse response = getRpcResponse(request, method);
+        log.debug("===> post result: {}", result);
+
         for (Filter filter : filterList) {
-            Object result = filter.postFilter(request, response, response.getData());
+            result = filter.postFilter(request, rpcResponse, result);
             if (Objects.nonNull(result)) {
                 return result;
             }
         }
-        return response.getData();
+        return result;
     }
 
     private RpcResponse getRpcResponse(RpcRequest request, Method method) {

@@ -25,7 +25,7 @@ public interface Filter {
 
         @Override
         public Object postFilter(RpcRequest rpcRequest, RpcResponse rpcResponse, Object result) {
-            return null;
+            return result;
         }
     };
 }
