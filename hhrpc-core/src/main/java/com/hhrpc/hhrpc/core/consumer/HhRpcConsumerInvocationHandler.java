@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.Objects;
 
@@ -26,7 +27,7 @@ public class HhRpcConsumerInvocationHandler implements InvocationHandler {
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) {
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         RpcRequest request = new RpcRequest();
         request.setServiceName(serviceName);
         request.setArgs(args);
@@ -34,31 +35,46 @@ public class HhRpcConsumerInvocationHandler implements InvocationHandler {
         if (HhRpcMethodUtils.checkLocalMethod(method)) {
             return null;
         }
-        List<Filter> filterList = rpcContent.getFilterList();
-        for (Filter filter : filterList) {
-            Object result = filter.preFilter(request);
-            if (Objects.nonNull(result)) {
-                log.debug("===> filter: {}", result);
-                return result;
-            }
-        }
-        log.debug("===> invoke: {}", request);
-        InstanceMeta instanceMeta = rpcContent.getLoadBalance().choose(rpcContent.getRouter().rout(instanceMetaList));
-        RpcResponse<?> rpcResponse = rpcContent.getHttpInvoker().post(request, instanceMeta.toUrl());
-        if (!rpcResponse.getStatus()) {
-            HhRpcExceptionEnum hhRpcExceptionEnum = HhRpcExceptionEnum.findHhRpcExceptionEnum(rpcResponse.getErrorCode());
-            throw new HhRpcException(hhRpcExceptionEnum.getErrorMessage());
-        }
+        int retries = 2;
+        String url = null;
+        Object result = null;
+        while (retries-- > 0) {
+            try {
+                log.debug("==> reties {}", retries);
+                List<Filter> filterList = rpcContent.getFilterList();
+                for (Filter filter : filterList) {
+                    result = filter.preFilter(request);
+                    if (Objects.nonNull(result)) {
+                        log.debug("===> filter: {}", result);
+                        return result;
+                    }
+                }
+                log.debug("===> invoke: {}", request);
+                InstanceMeta instanceMeta = rpcContent.getLoadBalance().choose(rpcContent.getRouter().rout(instanceMetaList));
+                url = instanceMeta.toUrl();
+                RpcResponse<?> rpcResponse = rpcContent.getHttpInvoker().post(request, url);
+                if (!rpcResponse.getStatus()) {
+                    HhRpcExceptionEnum hhRpcExceptionEnum = HhRpcExceptionEnum.findHhRpcExceptionEnum(rpcResponse.getErrorCode());
+                    throw new HhRpcException(hhRpcExceptionEnum.getErrorMessage());
+                }
 //        Object result = rpcResponse.getData();
 //        result = TypeUtils.castFastJsonReturnObject(result, method);
-        rpcResponse = getRpcResponse(request, method);
-        Object result = rpcResponse.getData();
-        log.debug("===> post result: {}", result);
+                rpcResponse = TypeUtils.getRpcResponse(method, rpcResponse);
+                result = rpcResponse.getData();
+                log.debug("===> post result: {}", result);
 
-        for (Filter filter : filterList) {
-            result = filter.postFilter(request, rpcResponse, result);
-            if (Objects.nonNull(result)) {
+                for (Filter filter : filterList) {
+                    result = filter.postFilter(request, rpcResponse, result);
+                    if (Objects.nonNull(result)) {
+                        return result;
+                    }
+                }
                 return result;
+            } catch (Exception e) {
+                if (!(e.getCause() instanceof SocketTimeoutException)) {
+                    throw e;
+                }
+                log.error("===> SocketTimeoutException {}", url);
             }
         }
         return result;
