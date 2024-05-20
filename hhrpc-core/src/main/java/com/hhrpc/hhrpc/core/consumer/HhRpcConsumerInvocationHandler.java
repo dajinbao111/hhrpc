@@ -1,9 +1,6 @@
 package com.hhrpc.hhrpc.core.consumer;
 
-import com.hhrpc.hhrpc.core.api.Filter;
-import com.hhrpc.hhrpc.core.api.RpcContent;
-import com.hhrpc.hhrpc.core.api.RpcRequest;
-import com.hhrpc.hhrpc.core.api.RpcResponse;
+import com.hhrpc.hhrpc.core.api.*;
 import com.hhrpc.hhrpc.core.meta.InstanceMeta;
 import com.hhrpc.hhrpc.core.util.HhRpcMethodUtils;
 import com.hhrpc.hhrpc.core.util.TypeUtils;
@@ -49,11 +46,13 @@ public class HhRpcConsumerInvocationHandler implements InvocationHandler {
         InstanceMeta instanceMeta = rpcContent.getLoadBalance().choose(rpcContent.getRouter().rout(instanceMetaList));
         RpcResponse<?> rpcResponse = rpcContent.getHttpInvoker().post(request, instanceMeta.toUrl());
         if (!rpcResponse.getStatus()) {
-            throw rpcResponse.getEx();
+            HhRpcExceptionEnum hhRpcExceptionEnum = HhRpcExceptionEnum.findHhRpcExceptionEnum(rpcResponse.getErrorCode());
+            throw new HhRpcException(hhRpcExceptionEnum.getErrorMessage());
         }
+//        Object result = rpcResponse.getData();
+//        result = TypeUtils.castFastJsonReturnObject(result, method);
+        rpcResponse = getRpcResponse(request, method);
         Object result = rpcResponse.getData();
-        result = TypeUtils.castFastJsonReturnObject(result, method);
-        //RpcResponse response = getRpcResponse(request, method);
         log.debug("===> post result: {}", result);
 
         for (Filter filter : filterList) {

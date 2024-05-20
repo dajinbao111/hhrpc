@@ -1,6 +1,6 @@
 package com.hhrpc.hhrpc.core.provider;
 
-import com.hhrpc.hhrpc.core.api.HhRpcException;
+import com.hhrpc.hhrpc.core.api.HhRpcExceptionEnum;
 import com.hhrpc.hhrpc.core.api.RpcRequest;
 import com.hhrpc.hhrpc.core.api.RpcResponse;
 import com.hhrpc.hhrpc.core.meta.ProviderMeta;
@@ -30,9 +30,9 @@ public class ProviderInvoker {
             result.setData(data);
             return result;
         } catch (InvocationTargetException e) {
-            result.setEx(new HhRpcException(e.getTargetException(), HhRpcException.UNKNOWN));
+            result.setErrorCode(HhRpcExceptionEnum.X002.getErrorCode());
         } catch (IllegalAccessException e) {
-            result.setEx(new HhRpcException(e.getCause(), HhRpcException.UNKNOWN));
+            result.setErrorCode(HhRpcExceptionEnum.Z001.getErrorCode());
         }
         return result;
     }

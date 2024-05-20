@@ -1,6 +1,5 @@
 package com.hhrpc.hhrpc.core.consumer.http;
 
-import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.hhrpc.hhrpc.core.api.RpcRequest;
 import com.hhrpc.hhrpc.core.api.RpcResponse;
@@ -32,10 +31,8 @@ public class OkHttpInvoker implements HttpInvoker {
                     .url(url)
                     .post(RequestBody.create(requestData, MediaType.get("application/json; charset=utf-8")
                     )).build()).execute();
-            // gson转化异常对象会失败
-            //return gson.fromJ  son(response.body().string(), RpcResponse.class);
-            String resultJson = response.body().string();
-            return JSONObject.parseObject(resultJson, RpcResponse.class);
+
+            return gson.fromJson(response.body().string(), RpcResponse.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
