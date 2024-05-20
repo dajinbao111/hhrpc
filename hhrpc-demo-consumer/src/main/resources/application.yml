@@ -14,6 +14,7 @@ app:
   id: hhrpc
   namespace: public
   env: dev
+  retries: 2
 
 logging:
   level:
